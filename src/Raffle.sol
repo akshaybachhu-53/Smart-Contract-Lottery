@@ -6,7 +6,7 @@ pragma solidity ^0.8.30;
  * @author Bachhu Akshay
  * @notice This contract is for creating a raffle
  * @dev Implements Chainlink VRFv2.5
-*/
+ */
 
 contract Raffle {
     // Errors
@@ -24,7 +24,7 @@ contract Raffle {
     }
 
     function enterRaffle() external payable {
-        if(msg.value < i_entranceFee) {
+        if (msg.value < i_entranceFee) {
             revert Raffle__SendMoreToEnterRaffle();
         }
         s_players.push(payable(msg.sender)); // ETH to winner
@@ -32,72 +32,17 @@ contract Raffle {
 
     function pickWinner() external {
         // Check to see if enough time is passed.
-        if(block.timestamp - s_lastTimeStamp < i_interval){
+        if (block.timestamp - s_lastTimeStamp < i_interval) {
             revert();
         }
     }
 
-
     /**
-      * Getter Functions
-    */
+     * Getter Functions
+     */
     function getEntranceFee() public view returns (uint256) {
         return i_entranceFee;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     // Layout of contracts:
     // version
