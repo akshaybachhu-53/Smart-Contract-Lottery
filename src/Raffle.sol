@@ -14,6 +14,7 @@ import {VRFV2PlusClient} from "@chainlink/contracts/src/v0.8/vrf/dev/libraries/V
 error Raffle__SendMoreToEnterRaffle();
 error Raffle__TransferFailed();
 error Raffle__NotOpen();
+error Raffle__UpKeepNotNeeded(uint256 balance, uint256 playersLength, uint256 raffleState);
 
 contract Raffle is VRFConsumerBaseV2Plus {
     /*Type Declarations */
@@ -100,8 +101,9 @@ contract Raffle is VRFConsumerBaseV2Plus {
     {
         (bool upKeepNeeded,) = checkUpkeep("");
         if (!upKeepNeeded) {
-            revert();
+            revert Raffle__UpKeepNotNeeded(address(this).balance, s_players.length, uint256(s_raffleState));
         }
+
         s_raffleState = RaffleState.CALCULATING;
         VRFV2PlusClient.RandomWordsRequest memory request = VRFV2PlusClient.RandomWordsRequest({
             keyHash: i_keyHash,
@@ -139,6 +141,10 @@ contract Raffle is VRFConsumerBaseV2Plus {
     function getEntranceFee() public view returns (uint256) {
         return i_entranceFee;
     }
+
+    function getRaffleState() external view returns (RaffleState) {
+        return s_raffleState;
+    }
 }
 // Layout of contracts:
 // version
@@ -160,4 +166,3 @@ contract Raffle is VRFConsumerBaseV2Plus {
 // internal
 // private
 // view & pure functions
-
