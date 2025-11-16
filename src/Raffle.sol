@@ -11,17 +11,18 @@ pragma solidity ^0.8.30;
 import {VRFConsumerBaseV2Plus} from "@chainlink/contracts/src/v0.8/vrf/dev/VRFConsumerBaseV2Plus.sol";
 import {VRFV2PlusClient} from "@chainlink/contracts/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol";
 
-error Raffle__SendMoreToEnterRaffle();
-error Raffle__TransferFailed();
-error Raffle__NotOpen();
-error Raffle__UpKeepNotNeeded(uint256 balance, uint256 playersLength, uint256 raffleState);
-
 contract Raffle is VRFConsumerBaseV2Plus {
     /*Type Declarations */
     enum RaffleState {
         OPEN,
         CALCULATING
     }
+
+    /* Errors */
+    error Raffle__SendMoreToEnterRaffle();
+    error Raffle__TransferFailed();
+    error Raffle__NotOpen();
+    error Raffle__UpKeepNotNeeded(uint256 balance, uint256 playersLength, uint256 raffleState);
 
     /* State Variables */
     uint256 private immutable i_entranceFee;
@@ -144,6 +145,10 @@ contract Raffle is VRFConsumerBaseV2Plus {
 
     function getRaffleState() external view returns (RaffleState) {
         return s_raffleState;
+    }
+
+    function getPlayer(uint256 index) external view returns (address) {
+        return s_players[index];
     }
 }
 // Layout of contracts:
