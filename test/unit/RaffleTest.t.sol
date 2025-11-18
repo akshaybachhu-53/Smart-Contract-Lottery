@@ -5,6 +5,7 @@ import {Test} from "forge-std/Test.sol";
 import {DeployRaffle} from "script/DeployRaffle.s.sol";
 import {HelperConfig} from "script/HelperConfig.s.sol";
 import {Raffle} from "src/Raffle.sol";
+import {Vm} from "forge-std/Vm.sol";
 
 contract RaffleTest is Test {
     Raffle public raffle;
@@ -79,5 +80,133 @@ contract RaffleTest is Test {
         vm.expectRevert(Raffle.Raffle__NotOpen.selector);
         vm.prank(PLAYER);
         raffle.enterRaffle{value: entranceFee}();
+    }
+
+    // CHECKUPKEEP
+    function testCheckUpKeepReturnsFalseIfItHasNoBalance() public {
+        // Arrange without balance checking upkeepNeeded or not
+        vm.warp(block.timestamp + interval + 1);
+        vm.roll(block.number + 1);
+
+        // Act
+        (bool upKeepNeeded,) = raffle.checkUpkeep("");
+
+        // Assert
+        assert(!upKeepNeeded);
+    }
+
+    function testCheckUpKeepReturnsFalseIfIsntOpen() public {
+        // Arrange this is for when raffle is calculating that is Not in OPEN state
+        // checkUpkeep returns false.
+        vm.prank(PLAYER);
+        raffle.enterRaffle{value: entranceFee}();
+        vm.warp(block.timestamp + interval + 1);
+        vm.roll(block.number + 1);
+        raffle.performUpkeep("");
+
+        // Act
+        (bool upKeepNeeded,) = raffle.checkUpkeep("");
+
+        // Act
+        assert(!upKeepNeeded);
+    }
+
+    function testCheckUpKeepReturnsFalseIfEnoughTimeHasntPassed() public {
+        // Arrange
+        vm.prank(PLAYER);
+        raffle.enterRaffle{value: entranceFee}();
+
+        // Act
+        (bool upKeepNeeded,) = raffle.checkUpkeep("");
+
+        // Assert
+        assert(!upKeepNeeded);
+    }
+
+    function testCheckUpkeepReturnsTrueWhenParametersGood() public {
+        // Arrange
+        vm.prank(PLAYER);
+        raffle.enterRaffle{value: entranceFee}();
+        vm.warp(block.timestamp + interval + 1);
+        vm.roll(block.number + 1);
+
+        // Act
+        (bool upkeepNeeded,) = raffle.checkUpkeep("");
+
+        // Assert
+        assert(upkeepNeeded);
+        // This test passes because all upKeep params are correct length, balance, timeHas
+        // passed and Raffle is OPEN.
+    }
+
+    // PERFORM UPKEEP
+    function testPerformUpkeepCanOnlyRunIfCheckUpKeepIsTrue() public {
+        // Arrange
+        vm.prank(PLAYER);
+        raffle.enterRaffle{value: entranceFee}();
+        // Here time and block are not moved forward so upKeep not needed.
+        // vm.warp(block.timestamp + interval + 1);
+        // vm.roll(block.number + 1);
+        uint256 currentBalance = entranceFee;
+        uint256 playersLength = 1;
+        uint256 raffleState = 0;
+
+        // Act / Assert
+        vm.expectRevert(
+            abi.encodeWithSelector(Raffle.Raffle__UpKeepNotNeeded.selector, currentBalance, playersLength, raffleState)
+        );
+        // This emits error because no time passed.
+        vm.prank(PLAYER); // No need to prank also.
+        raffle.performUpkeep("");
+    }
+
+    function testPerformUpkeepRevertsIfCheckUpkeepIsFalse() public {
+        // Arrange
+        uint256 currentBalance = 0;
+        uint256 numPlayers = 0;
+        Raffle.RaffleState rState = raffle.getRaffleState();
+        // Act / Assert
+        vm.expectRevert(
+            abi.encodeWithSelector(Raffle.Raffle__UpKeepNotNeeded.selector, currentBalance, numPlayers, rState)
+        );
+        raffle.performUpkeep("");
+    }
+
+    function testPerformUpkeepCanOnlyRunifCheckUpkeepIsTrue() public {
+        // Arrange
+        vm.prank(PLAYER);
+        raffle.enterRaffle{value: entranceFee}();
+        vm.warp(block.timestamp + interval + 1);
+        vm.roll(block.number + 1);
+
+        // Act / Assert
+        // It doesnt revert
+        raffle.performUpkeep("");
+    }
+
+    modifier raffleEntered() {
+        vm.prank(PLAYER);
+        raffle.enterRaffle{value: entranceFee}();
+        vm.warp(block.timestamp + interval + 1);
+        vm.roll(block.number + 1);
+        _;
+    }
+
+    // what if we need to get data from emitted events in our tests?
+    function testPerformUpkeepUpdatesRaffleStateAndEmitRequestId() public raffleEntered {
+        // Arrange is the modifier
+
+        // Act
+        // This is the cheatCode for getting data from emitted events.
+        vm.recordLogs();
+        raffle.performUpkeep("");
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+        bytes32 requestId = entries[1].topics[1];
+
+        // Assert
+        Raffle.RaffleState raffleState = raffle.getRaffleState();
+        // requestId = raffle.getLastRequestId();
+        assert(uint256(requestId) > 0);
+        assert(uint256(raffleState) == 1); // 0 --> open, 1 --> calculating.
     }
 }
