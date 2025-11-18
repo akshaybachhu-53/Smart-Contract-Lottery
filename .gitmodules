@@ -4,3 +4,9 @@
 [submodule "lib/chainlink-contracts"]
 	path = lib/chainlink-contracts
 	url = https://github.com/smartcontractkit/chainlink-brownie-contracts.git
+[submodule "lib/transmissions11-solmate"]
+	path = lib/transmissions11-solmate
+	url = https://github.com/transmissions11/solmate.git
+[submodule "lib/foundry-devops"]
+	path = lib/foundry-devops
+	url = https://github.com/Cyfrin/foundry-devops.git
