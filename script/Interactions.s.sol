@@ -22,7 +22,7 @@ contract CreateSubscription is Script, CodeConstants {
         vm.startBroadcast();
         uint256 subId = VRFCoordinatorV2_5Mock(vrfCoordinator).createSubscription();
         vm.stopBroadcast();
-        console.log("Your Subscription Id is:" ,subId);
+        console.log("Your Subscription Id is:", subId);
         console.log("Please update the subscription Id in your HelperConfig.s.sol");
         return (subId, vrfCoordinator);
         // Fund it...
@@ -49,7 +49,7 @@ contract FundSubscription is Script, CodeConstants {
         console.log("Using vrfCoordinator: ", vrfCoordinator);
         console.log("On chainId: ", block.chainid);
 
-        if(block.chainid == LOCAL_CHAIN_ID) {
+        if (block.chainid == LOCAL_CHAIN_ID) {
             vm.startBroadcast();
             VRFCoordinatorV2_5Mock(vrfCoordinator).fundSubscription(subscriptionId, FUND_AMOUNT);
             vm.stopBroadcast();
@@ -66,12 +66,11 @@ contract FundSubscription is Script, CodeConstants {
 }
 
 contract AddConsumer is Script {
-
     function addConsumerUsingConfig(address mostRecentlyDeployed) public {
         HelperConfig helperConfig = new HelperConfig();
         uint256 subscriptionId = helperConfig.getConfig().subscriptionId;
         address vrfCoordinator = helperConfig.getConfig().vrfCoordinator;
-        addConsumer(mostRecentlyDeployed ,vrfCoordinator, subscriptionId);
+        addConsumer(mostRecentlyDeployed, vrfCoordinator, subscriptionId);
     }
 
     function addConsumer(address contractToAddToVrf, address vrfCoordinator, uint256 subscriptionId) public {
