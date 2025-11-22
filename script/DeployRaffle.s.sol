@@ -7,7 +7,7 @@ import {HelperConfig} from "script/HelperConfig.s.sol";
 import {CreateSubscription, FundSubscription, AddConsumer} from "script/Interactions.s.sol";
 
 contract DeployRaffle is Script {
-    function deployContract() external returns (Raffle, HelperConfig) {
+    function deployContract() public returns (Raffle, HelperConfig) {
         HelperConfig helperConfig = new HelperConfig();
         HelperConfig.NetworkConfig memory config = helperConfig.getConfig();
 
@@ -41,7 +41,7 @@ contract DeployRaffle is Script {
 
     // Here the deploycontract still works because im calling it. With run() as empty
     function run() public {
-        // deployContract();
+        deployContract();
         // Aim for 100 % tests
     }
 }
